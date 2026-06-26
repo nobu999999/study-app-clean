@@ -52,3 +52,86 @@ def save_miss_info(problem_id, error_type, memo):
     )
     conn.commit()
     conn.close()
+
+
+def add_problem(
+    app_type,
+    question,
+    answer,
+    memo="",
+    error_type=""
+):
+    
+
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO problems (
+            app_type,
+            question,
+            answer,
+            memo,
+            error_type,
+            correct,
+            total
+        )
+        VALUES (?, ?, ?, ?, ?, 0, 0)
+    """, (
+        app_type,
+        question,
+        answer,
+        memo,
+        error_type
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+
+def exists_question(app_type, question):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT COUNT(*) FROM problems WHERE  app_type = ? AND question = ?",
+        (app_type, question)
+    )
+
+    exists = cur.fetchone()[0] > 0
+
+    conn.close()
+
+    return exists
+
+def get_random_problem(app_type):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT problem_id, question, answer, memo
+        FROM problems
+        WHERE app_type = ?
+        ORDER BY RANDOM()
+        LIMIT 1
+    """, (app_type,))
+
+    row = cur.fetchone()
+    conn.close()
+
+    return row
+
+
+def delete_english_problems():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("""
+        DELETE FROM problems
+        WHERE app_type = ?
+    """, ("english",))
+
+    conn.commit()
+    conn.close()
+
